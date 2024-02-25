@@ -1,0 +1,84 @@
+import spacy
+
+# Load the spaCy model
+nlp = spacy.load("en_core_web_sm")
+
+# Max's updated profile and preferences
+max_profile = {
+    "name": "Max Grabel",
+    "contact_email": "maxgrabelbusiness@gmail.com",
+    "profession": "DJ & Music Creator",
+    "bio": "Originally a celebrated Live DJ from Michigan, Max skillfully pivoted to the digital world amidst COVID-19. He rapidly grew a loyal following in the millions on TikTok, Instagram, and YouTube by sharing unique mixes and top song reviews, posting 4-6 times weekly.",
+    "interests": ["DJ", "Music Creation"],
+    "availability": "Open to new collaborations",
+    "statistics": {
+        "tiktok_followers": 3.1e6,
+        "gender_demographic": "63% Men",
+        "engagement_rate": 28.9,
+        "weekly_reach": 9.1e6,
+    },
+    "rates": {
+        "flat_rate": {"1_video": 2900, "2_videos": 4700, "3_videos": 6500},
+        "additional_platform_rate": 1.5,
+        "cpm_rate": {"min": 500, "max": 20000, "1_video": 10, "2_videos": 8, "3_videos": 5},
+        "ugc_rate": {"1_video": 2600, "2_videos": 4100, "3_videos": 5600},
+        "usage_rights": {"3_months": 550, "6_months": 700, "1_year_plus": 1100},
+    },
+    "do_not_accept": ["non-paid deals"],
+}
+
+# Function to analyze the email content and identify key information
+def analyze_email_content(doc):
+    organizations = [ent.text for ent in doc.ents if ent.label_ == "ORG"]
+    dates = [ent.text for ent in doc.ents if ent.label_ == "DATE"]
+    collaboration_mentions = any(word in doc.text.lower() for word in ["collaboration", "partner", "affiliate"])
+    return {
+        "organizations": organizations,
+        "dates": dates,
+        "collaboration_mentions": collaboration_mentions,
+    }
+
+# Function to parse email and generate a response
+def process_email(email_text):
+    doc = nlp(email_text)
+    analyzed_content = analyze_email_content(doc)
+    is_paid = any(word in email_text.lower() for word in ["payment", "commission", "paid", "sponsor"])
+    
+    # Start of the response
+    response = f"Hello,\n\nThank you for reaching out with interest in a collaboration with Max Grabel. Max, a renowned DJ and Music Creator, is always looking for new, engaging opportunities."
+    
+    # If it's a paid collaboration
+    if is_paid and analyzed_content['collaboration_mentions']:
+        response += f" Based on your message, we're excited to explore how your proposal aligns with Max's brand and interests in music creation and DJing. Max's standard rates for TikTok collaborations start at ${max_profile['rates']['flat_rate']['1_video']} for one video, with additional options for multi-platform reposts and varied content pieces."
+        
+        # If organizations are mentioned
+        if analyzed_content['organizations']:
+            response += f" We noticed you represent {' and '.join(analyzed_content['organizations'])}, and we're interested in how this partnership could benefit both parties."
+        
+        # Add rate details and ask for more information
+        response += " Please provide more details about the expected deliverables, campaign duration, and any specific content guidelines. We’re keen to ensure a perfect fit for both Max’s creative style and your campaign objectives."
+    elif is_paid:
+        # If paid but no specific collaboration mentions
+        response += " We're intrigued by the possibility of working together but need more details about the nature of the collaboration to proceed."
+    else:
+        # If not a paid collaboration
+        response += " Currently, Max is prioritizing paid collaborations that align with his professional interests and audience engagement metrics. Unfortunately, it appears your proposal might not meet these criteria."
+    
+    # Closing of the response
+    response += "\n\nLooking forward to hearing more from you.\nBest regards,\nMax Grabel\nmaxgrabelbusiness@gmail.com"
+    
+    return response
+
+# Example incoming emails for testing
+test_emails = [
+    "Hello there!\n\nGreetings of the day!\n\nThis is Peri from TEMU! I've been following your profile for a while now, and I am really impressed by your exclusively engaging content and your incredible ability to create value for your audience! We'll be honored to sponsor your channel and be happy to ship our products that I am sure your audience will enjoy! Here is our [website](https://www.temu.com/)!\n\nIs there any chance we can work together to create something exceptional? If you are interested in pursuing a partnership with us, please don't hesitate to share your **cooperation price** as follows. Looking forward to hearing from you!\n\nBest Regards,\n\nPeri | Influencer Marketing Manager",
+    "Hello Max,\n\nI hope this email finds you well.My name is Carol, responsible for influencer communication at PartnerBoost. We are working with lots of famous brands such as Adidas, Flannels, Farfetch and NET-A-PORTER. Thus I am reaching out to see if you are interested in joining us to promote their latest deals. Here are the deliverables, please check below:Deliverables: 1. Sponsored Community Post (please check the [example](https://www.youtube.com/post/UgkxuxaVZAB_nEuS3UdfM3zNM1j_GvTF_3t0) we did before)2. Adding affiliate links into your description boxesPromo info: To be ConfirmedPayment: flat fee within 10 business days after posting/adding links + commission (if any sales generated)Here is a quick introduction of PartnerBoost: as an all-in-one affiliate & influencer marketing platform, I help extend my clients’ businesses by collaborating with influencers and media through CPS campaigns and paid collaborations.If you are interested in these campaigns, could you please share your rates with me at your earliest convenience?Rest assured all the information will be held strictly confidential. Please let me know if you have any questions or concerns.I am looking forward to your response.All the Best,",
+    "Dear Valued Content Creator,\n\nI hope this message finds you well. My name is Wesley, and I am reaching out to you on behalf of Grammarly, the world's leading writing assistance tool.\n\nWe have been avidly following your YouTube channel and have been thoroughly impressed with the quality of your work. Your ability to engage your audience through informative and entertaining videos is truly remarkable.\n\nAt Grammarly, we believe that our product can help your viewers improve their writing skills and take their content creation to the next level. We would love to offer you a partnership opportunity to showcase our product to your audience.\n\nAs a partner, we would provide you with access to our premium features and support you in creating content that showcases the benefits of our product. In return, we ask that you feature our product in your videos and promote it to your audience.\n\nOur goal is to work with you to create engaging and informative content that will benefit your viewers while promoting our brand. With your expertise and our product, we are confident that we can create something truly special.\n\nIf you are interested in this partnership opportunity, please let us know, and we will provide you with more information on our offer. We look forward to hearing from you soon.\n\nThank you for considering our proposal.",
+    "Hello,Max Grabel\n\nNice to contact you!\n\nThis is the Asjmreye，mainly furniture and home textiles\n\nWe wouil like to invite you to make an unboxing video/product recomment videoon TikTok for our products.\n\nWe can offer free samples and 15% commissiom\n\nLooking forward to reply soon!\n\nBest Regards,\n\nAsjmreye"
+]
+
+# Process each email and print the response
+for email in test_emails:
+    print("Original Email:\n", email)
+    print("\nGenerated Response:\n", process_email(email))
+    print("\n------------------------------------\n")
