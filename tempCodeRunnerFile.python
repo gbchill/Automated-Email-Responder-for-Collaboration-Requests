@@ -1,21 +1,4 @@
-import spacy
-from textblob import TextBlob
-from datetime import datetime
-import random
 
-
-# Load the spaCy model
-nlp = spacy.load("en_core_web_sm")
-
-# Max's updated profile and preferences
-max_profile = {
-    "name": "Max Grabel",
-    "contact_email": "maxgrabelbusiness@gmail.com",
-    "profession": "DJ & Music Creator",
-    "bio": "Originally a celebrated Live DJ from Michigan, Max skillfully pivoted to the digital world amidst COVID-19. He rapidly grew a loyal following in the millions on TikTok, Instagram, and YouTube by sharing unique mixes and top song reviews, posting 4-6 times weekly.",
-    "interests": ["DJ", "Music Creation"],
-    "availability": "Open to new collaborations",
-    "statistics": {
         "tiktok_followers": 3.1e6,
         "gender_demographic": "63% Men",
         "engagement_rate": 28.9,
@@ -37,61 +20,40 @@ def analyze_email_content(doc):
     dates = [ent.text for ent in doc.ents if ent.label_ == "DATE"]
     collaboration_mentions = any(word in doc.text.lower() for word in ["collaborate", "partnership", "sponsorship", "affiliate"])
     product_mentions = any(ent.label_ == "PRODUCT" for ent in doc.ents)
-    questions = [sent.text for sent in doc.sents if sent.text.endswith('?')]
-    tone = TextBlob(doc.text).sentiment.polarity  # Using TextBlob for simplicity
-    urgency = "urgent" if "urgent" in doc.text.lower() or "asap" in doc.text.lower() or "immediately" in doc.text.lower() else "normal"
-    
     return {
         "organizations": organizations,
         "dates": dates,
         "collaboration_mentions": collaboration_mentions,
         "product_mentions": product_mentions,
-        "questions": questions,
-        "tone": "positive" if tone > 0 else "negative" if tone < 0 else "neutral",
-        "urgency": urgency,
     }
 
-# Enhanced function to generate more personalized and variable responses
+# Function to parse email and generate a response
 def process_email(email_text):
     doc = nlp(email_text)
     analyzed_content = analyze_email_content(doc)
     is_paid = any(word in email_text.lower() for word in ["payment", "commission", "paid", "sponsor", "rates", "fee"])
 
-    # Personalized greeting based on the time of day
-    greeting = "Good morning" if 5 <= datetime.now().hour < 12 else "Good afternoon" if 12 <= datetime.now().hour < 18 else "Good evening"
-
-    # Start of the response with variability
-    responses = [
-        f"{greeting},\n\nThank you for reaching out with your proposal.",
-        f"{greeting},\n\nThanks for your interest in a collaboration.",
-        f"{greeting},\n\nAppreciate your message and the opportunity to collaborate.",
-    ]
-    response = responses[random.randint(0, len(responses) - 1)]  # Randomly select an opening line
+    # Start of the response
+    response = f"Hello,\n\nThank you for your interest in collaborating with {max_profile['name']}. {max_profile['bio']}"
     
-    response += f" It's great to hear from {', '.join(analyzed_content['organizations'])}." if analyzed_content['organizations'] else ""
-    response += f" I'm intrigued by the proposal for {', '.join(analyzed_content['dates'])}." if analyzed_content['dates'] else ""
-
-    # More personalized body based on email analysis
-    if is_paid:
-        response += " We're open to discussing paid partnerships."
+    # Adjust response based on the email content and Max's preferences
+    if is_paid and analyzed_content['collaboration_mentions']:
         if analyzed_content['product_mentions']:
-            response += " While I note the product-related discussion, I'm more inclined towards direct collaborations that align with my interests in DJing and music creation."
-        if analyzed_content['questions']:
-            response += f" Also, you asked: {'; '.join(analyzed_content['questions'])} - let's address these."
-        response += f" Max's standard rates are as follows: ${max_profile['rates']['flat_rate']['1_video']} for one video. Detailed rates depend on collaboration specifics."
+            response += " While we appreciate your interest in product-related collaborations, "
+        response += f" we are currently focusing on paid partnerships that align with Max's interests in {', '.join(max_profile['interests'])}."
+        if analyzed_content['organizations']:
+            response += f" We noticed your association with {' and '.join(analyzed_content['organizations'])}, and are interested in discussing potential collaborations."
+        response += f" Max's standard rates start at ${max_profile['rates']['flat_rate']['1_video']} for one video, subject to the specifics of the collaboration."
+        response += " Please provide more details on your proposed collaboration, including deliverables, campaign duration, and content expectations."
+    elif is_paid:
+        response += " We need more details about the collaboration to understand how it aligns with Max’s interests and professional engagements."
     else:
-        response += " However, we generally don’t proceed with non-paid collaborations as per Max's current policies."
-
-    # Personalized closing based on the tone and urgency
-    if analyzed_content['urgency'] == "urgent":
-        response += "\n\nI understand the urgency and will get back to you as soon as possible."
-    else:
-        response += "\n\nLooking forward to your thoughts and more details."
-
-    response += f"\n\nBest regards,\n{max_profile['name']}\n{max_profile['contact_email']}"
-
+        response += f" As per Max's preferences, we are currently not considering non-paid collaborations or product exchange deals."
+    
+    # Closing of the response
+    response += f"\n\nPlease feel free to reach out with further details or questions.\nBest regards,\n{max_profile['name']}\n{max_profile['contact_email']}"
+    
     return response
-
 
 # Example incoming emails for testing
 test_emails = [
@@ -101,10 +63,6 @@ test_emails = [
     "Hello,Max Grabel\n\nNice to contact you!\n\nThis is the Asjmreye，mainly furniture and home textiles\n\nWe wouil like to invite you to make an unboxing video/product recomment videoon TikTok for our products.\n\nWe can offer free samples and 15% commissiom\n\nLooking forward to reply soon!\n\nBest Regards,\n\nAsjmreye"
 ]
 
-
-
-# Process each email and print the response
-# Process each email and print the response
 for email in test_emails:
     print("Original Email:\n", email)
     print("\nGenerated Response:\n", process_email(email))
