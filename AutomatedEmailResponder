@@ -1,13 +1,13 @@
-import spacy
-from textblob import TextBlob
+import spacy # Import spaCy library for natural language processing
+from textblob import TextBlob # Import TextBlob library for sentiment analysis
 from datetime import datetime
 import random
 
 
-# Load the spaCy model
+# load the spaCy model for english language
 nlp = spacy.load("en_core_web_sm")
 
-# Max's updated profile and preferences
+# define a dictionary containing profile information for a person named Max this can be anyone just change 
 max_profile = {
     "name": "Max Grabel",
     "contact_email": "maxgrabelbusiness@gmail.com",
@@ -31,14 +31,14 @@ max_profile = {
     "do_not_accept": ["non-paid deals"],
 }
 
-# Function to analyze the email content and identify key information
+# thsi function is to analyze the content of an email and extract relevant information
 def analyze_email_content(doc):
     organizations = [ent.text for ent in doc.ents if ent.label_ == "ORG"]
     dates = [ent.text for ent in doc.ents if ent.label_ == "DATE"]
     collaboration_mentions = any(word in doc.text.lower() for word in ["collaborate", "partnership", "sponsorship", "affiliate"])
     product_mentions = any(ent.label_ == "PRODUCT" for ent in doc.ents)
     questions = [sent.text for sent in doc.sents if sent.text.endswith('?')]
-    tone = TextBlob(doc.text).sentiment.polarity  # Using TextBlob for simplicity
+    tone = TextBlob(doc.text).sentiment.polarity 
     urgency = "urgent" if "urgent" in doc.text.lower() or "asap" in doc.text.lower() or "immediately" in doc.text.lower() else "normal"
     
     return {
@@ -51,16 +51,16 @@ def analyze_email_content(doc):
         "urgency": urgency,
     }
 
-# Enhanced function to generate more personalized and variable responses
+ # this function to generate a personalized email response based on the analysis
 def process_email(email_text):
     doc = nlp(email_text)
     analyzed_content = analyze_email_content(doc)
     is_paid = any(word in email_text.lower() for word in ["payment", "commission", "paid", "sponsor", "rates", "fee"])
 
-    # Personalized greeting based on the time of day
+    # personalized greeting based on the time of day
     greeting = "Good morning" if 5 <= datetime.now().hour < 12 else "Good afternoon" if 12 <= datetime.now().hour < 18 else "Good evening"
 
-    # Start of the response with variability
+    # start of the response with variability
     responses = [
         f"{greeting},\n\nThank you for reaching out with your proposal.",
         f"{greeting},\n\nThanks for your interest in a collaboration.",
@@ -71,7 +71,7 @@ def process_email(email_text):
     response += f" It's great to hear from {', '.join(analyzed_content['organizations'])}." if analyzed_content['organizations'] else ""
     response += f" I'm intrigued by the proposal for {', '.join(analyzed_content['dates'])}." if analyzed_content['dates'] else ""
 
-    # More personalized body based on email analysis
+    #personalized body based on email analysis
     if is_paid:
         response += " We're open to discussing paid partnerships."
         if analyzed_content['product_mentions']:
@@ -82,7 +82,7 @@ def process_email(email_text):
     else:
         response += " However, we generally don’t proceed with non-paid collaborations as per Max's current policies."
 
-    # Personalized closing based on the tone and urgency
+    # personalized closing based on the tone and urgency
     if analyzed_content['urgency'] == "urgent":
         response += "\n\nI understand the urgency and will get back to you as soon as possible."
     else:
@@ -93,7 +93,7 @@ def process_email(email_text):
     return response
 
 
-# Example incoming emails for testing
+# example incoming emails for testing
 test_emails = [
     "Hello there!\n\nGreetings of the day!\n\nThis is Peri from TEMU! I've been following your profile for a while now, and I am really impressed by your exclusively engaging content and your incredible ability to create value for your audience! We'll be honored to sponsor your channel and be happy to ship our products that I am sure your audience will enjoy! Here is our [website](https://www.temu.com/)!\n\nIs there any chance we can work together to create something exceptional? If you are interested in pursuing a partnership with us, please don't hesitate to share your **cooperation price** as follows. Looking forward to hearing from you!\n\nBest Regards,\n\nPeri | Influencer Marketing Manager",
     "Hello Max,\n\nI hope this email finds you well.My name is Carol, responsible for influencer communication at PartnerBoost. We are working with lots of famous brands such as Adidas, Flannels, Farfetch and NET-A-PORTER. Thus I am reaching out to see if you are interested in joining us to promote their latest deals. Here are the deliverables, please check below:Deliverables: 1. Sponsored Community Post (please check the [example](https://www.youtube.com/post/UgkxuxaVZAB_nEuS3UdfM3zNM1j_GvTF_3t0) we did before)2. Adding affiliate links into your description boxesPromo info: To be ConfirmedPayment: flat fee within 10 business days after posting/adding links + commission (if any sales generated)Here is a quick introduction of PartnerBoost: as an all-in-one affiliate & influencer marketing platform, I help extend my clients’ businesses by collaborating with influencers and media through CPS campaigns and paid collaborations.If you are interested in these campaigns, could you please share your rates with me at your earliest convenience?Rest assured all the information will be held strictly confidential. Please let me know if you have any questions or concerns.I am looking forward to your response.All the Best,",
@@ -103,8 +103,8 @@ test_emails = [
 
 
 
-# Process each email and print the response
-# Process each email and print the response
+
+# process each email and print the response
 for email in test_emails:
     print("Original Email:\n", email)
     print("\nGenerated Response:\n", process_email(email))
