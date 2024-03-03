@@ -6,71 +6,91 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from email.mime.text import MIMEText
-from email import encoders
 
-# If modifying these SCOPES, delete the file token.json.
+# Define the scope of the application
 SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
 
 def authenticate_gmail():
-    """Shows basic usage of the Gmail API.
-    Lists the user's Gmail labels.
+    """
+    Authenticates the user and creates a Gmail API service.
+
+    Returns:
+        service: Authorized Gmail API service instance.
     """
     creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
+    # Check if token.json (stored user access tokens) exists
     if os.path.exists('token.json'):
         creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    # If there are no (valid) credentials available, let the user log in.
+    # If there are no (valid) credentials, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
             creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
-
+        # Save the credentials for future runs
+        with open('token.json', 'w') as token_file:
+            token_file.write(creds.to_json())
     try:
+        # Create the Gmail API client
         service = build('gmail', 'v1', credentials=creds)
         return service
-    except Exception as error:
-        print(f'An error occurred: {error}')
+    except Exception as e:
+        print(f'An error occurred: {e}')
         return None
 
 def create_message(sender, to, subject, message_text):
-    """Create a message for an email."""
+    """
+    Creates a MIMEText message suitable for sending with the Gmail API.
+
+    Args:
+        sender (str): Email address of the sender.
+        to (str): Email address of the receiver.
+        subject (str): The subject of the email message.
+        message_text (str): The text of the email message.
+
+    Returns:
+        dict: Dictionary object with base64 encoded email message.
+    """
     message = MIMEText(message_text)
     message['to'] = to
     message['from'] = sender
     message['subject'] = subject
+    # Encode the message to base64 url safe format
     raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
     return {'raw': raw_message}
 
 def send_message(service, user_id, message):
-    """Send an email message."""
+    """
+    Sends an email message through the Gmail API.
+
+    Args:
+        service: Authorized Gmail API service instance.
+        user_id (str): User's email address. Special value 'me' can be used to indicate the authenticated user.
+        message (dict): Message to be sent.
+
+    Returns:
+        dict: Sent message.
+    """
     try:
         message = service.users().messages().send(userId=user_id, body=message).execute()
         print(f'Message Id: {message["id"]}')
         return message
-    except HttpError as error:
-        print(f'An error occurred: {error}')
+    except HttpError as e:
+        print(f'An error occurred: {e}')
         return None
 
 def main():
-    # Authenticate and construct service.
+    # Authenticate and create the Gmail API client
     service = authenticate_gmail()
 
-    # Process incoming emails
-    # This is just a placeholder, replace with your actual email processing logic
-    processed_emails = process_incoming_emails(service)  # You'll need to define this based on your needs
+    # Process incoming emails (this function needs to be defined based on your application logic)
+    processed_emails = process_incoming_emails(service)  # Define this function
 
-    # For each processed email, send a response
+    # Send a response for each processed email
     for email in processed_emails:
-        # Generate the email body using your existing logic
-        response_body = generate_response(email)  # Implement this function based on your email processing logic
+        # Generate the email response (this function needs to be defined based on your application logic)
+        response_body = generate_response(email)  # Define this function
         message = create_message('maxgrabelbusiness@gmail.com', email['sender'], 'Re: ' + email['subject'], response_body)
         send_message(service, 'me', message)
 
