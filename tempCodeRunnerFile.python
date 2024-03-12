@@ -1,4 +1,21 @@
+import spacy  # NLP library for processing text
+from textblob import TextBlob  # Library for processing textual data and sentiment analysis
+from datetime import datetime
+import random
 
+
+# Load the spaCy English language model
+nlp = spacy.load("en_core_web_sm")
+
+# Profile information template (replace with generic or placeholder data)
+max_profile = {
+    "name": "Max Grabel",
+    "contact_email": "maxgrabelbusiness@gmail.com",
+    "profession": "DJ & Music Creator",
+    "bio": "Originally a celebrated Live DJ from Michigan, Max skillfully pivoted to the digital world amidst COVID-19. He rapidly grew a loyal following in the millions on TikTok, Instagram, and YouTube by sharing unique mixes and top song reviews, posting 4-6 times weekly.",
+    "interests": ["DJ", "Music Creation"],
+    "availability": "Open to new collaborations",
+    "statistics": {
         "tiktok_followers": 3.1e6,
         "gender_demographic": "63% Men",
         "engagement_rate": 28.9,
@@ -14,56 +31,97 @@
     "do_not_accept": ["non-paid deals"],
 }
 
-# Function to analyze the email content and identify key information
+# thsi function is to analyze the content of an email and extract relevant information
 def analyze_email_content(doc):
+    """
+    Analyzes the content of an email to extract relevant information.
+    Args:
+        email_text (str): The email content as a string.
+    Returns:
+        dict: A dictionary containing extracted information from the email.
+    """
     organizations = [ent.text for ent in doc.ents if ent.label_ == "ORG"]
     dates = [ent.text for ent in doc.ents if ent.label_ == "DATE"]
     collaboration_mentions = any(word in doc.text.lower() for word in ["collaborate", "partnership", "sponsorship", "affiliate"])
     product_mentions = any(ent.label_ == "PRODUCT" for ent in doc.ents)
+    questions = [sent.text for sent in doc.sents if sent.text.endswith('?')]
+    tone = TextBlob(doc.text).sentiment.polarity 
+    urgency = "urgent" if "urgent" in doc.text.lower() or "asap" in doc.text.lower() or "immediately" in doc.text.lower() else "normal"
+    
     return {
         "organizations": organizations,
         "dates": dates,
         "collaboration_mentions": collaboration_mentions,
         "product_mentions": product_mentions,
+        "questions": questions,
+        "tone": "positive" if tone > 0 else "negative" if tone < 0 else "neutral",
+        "urgency": urgency,
     }
 
-# Function to parse email and generate a response
+ # this function to generate a personalized email response based on the analysis
 def process_email(email_text):
+    """
+    Generates a personalized email response based on the analyzed content.
+    Args:
+        email_text (str): The text of the email to be processed.
+    Returns:
+        str: A personalized email response.
+    """
     doc = nlp(email_text)
     analyzed_content = analyze_email_content(doc)
     is_paid = any(word in email_text.lower() for word in ["payment", "commission", "paid", "sponsor", "rates", "fee"])
 
-    # Start of the response
-    response = f"Hello,\n\nThank you for your interest in collaborating with {max_profile['name']}. {max_profile['bio']}"
+    # personalized greeting based on the time of day
+    greeting = "Good morning" if 5 <= datetime.now().hour < 12 else "Good afternoon" if 12 <= datetime.now().hour < 18 else "Good evening"
+
+    # start of the response with variability
+    responses = [
+        f"{greeting},\n\nThank you for reaching out with your proposal.",
+        f"{greeting},\n\nThanks for your interest in a collaboration.",
+        f"{greeting},\n\nAppreciate your message and the opportunity to collaborate.",
+    ]
+    response = responses[random.randint(0, len(responses) - 1)]  # Randomly select an opening line
     
-    # Adjust response based on the email content and Max's preferences
-    if is_paid and analyzed_content['collaboration_mentions']:
+    response += f" It's great to hear from {', '.join(analyzed_content['organizations'])}." if analyzed_content['organizations'] else ""
+    response += f" I'm intrigued by the proposal for {', '.join(analyzed_content['dates'])}." if analyzed_content['dates'] else ""
+
+    #personalized body based on email analysis
+    if is_paid:
+        response += " We're open to discussing paid partnerships."
         if analyzed_content['product_mentions']:
-            response += " While we appreciate your interest in product-related collaborations, "
-        response += f" we are currently focusing on paid partnerships that align with Max's interests in {', '.join(max_profile['interests'])}."
-        if analyzed_content['organizations']:
-            response += f" We noticed your association with {' and '.join(analyzed_content['organizations'])}, and are interested in discussing potential collaborations."
-        response += f" Max's standard rates start at ${max_profile['rates']['flat_rate']['1_video']} for one video, subject to the specifics of the collaboration."
-        response += " Please provide more details on your proposed collaboration, including deliverables, campaign duration, and content expectations."
-    elif is_paid:
-        response += " We need more details about the collaboration to understand how it aligns with Max’s interests and professional engagements."
+            response += " While I note the product-related discussion, I'm more inclined towards direct collaborations that align with my interests in DJing and music creation."
+        if analyzed_content['questions']:
+            response += f" Also, you asked: {'; '.join(analyzed_content['questions'])} - let's address these."
+        response += f" Max's standard rates are as follows: ${max_profile['rates']['flat_rate']['1_video']} for one video. Detailed rates depend on collaboration specifics."
     else:
-        response += f" As per Max's preferences, we are currently not considering non-paid collaborations or product exchange deals."
-    
-    # Closing of the response
-    response += f"\n\nPlease feel free to reach out with further details or questions.\nBest regards,\n{max_profile['name']}\n{max_profile['contact_email']}"
-    
+        response += " However, we generally don’t proceed with non-paid collaborations as per Max's current policies."
+
+    # personalized closing based on the tone and urgency
+    if analyzed_content['urgency'] == "urgent":
+        response += "\n\nI understand the urgency and will get back to you as soon as possible."
+    else:
+        response += "\n\nLooking forward to your thoughts and more details."
+
+    response += f"\n\nBest regards,\n{max_profile['name']}\n{max_profile['contact_email']}"
+
     return response
 
-# Example incoming emails for testing
-test_emails = [
-    "Hello there!\n\nGreetings of the day!\n\nThis is Peri from TEMU! I've been following your profile for a while now, and I am really impressed by your exclusively engaging content and your incredible ability to create value for your audience! We'll be honored to sponsor your channel and be happy to ship our products that I am sure your audience will enjoy! Here is our [website](https://www.temu.com/)!\n\nIs there any chance we can work together to create something exceptional? If you are interested in pursuing a partnership with us, please don't hesitate to share your **cooperation price** as follows. Looking forward to hearing from you!\n\nBest Regards,\n\nPeri | Influencer Marketing Manager",
-    "Hello Max,\n\nI hope this email finds you well.My name is Carol, responsible for influencer communication at PartnerBoost. We are working with lots of famous brands such as Adidas, Flannels, Farfetch and NET-A-PORTER. Thus I am reaching out to see if you are interested in joining us to promote their latest deals. Here are the deliverables, please check below:Deliverables: 1. Sponsored Community Post (please check the [example](https://www.youtube.com/post/UgkxuxaVZAB_nEuS3UdfM3zNM1j_GvTF_3t0) we did before)2. Adding affiliate links into your description boxesPromo info: To be ConfirmedPayment: flat fee within 10 business days after posting/adding links + commission (if any sales generated)Here is a quick introduction of PartnerBoost: as an all-in-one affiliate & influencer marketing platform, I help extend my clients’ businesses by collaborating with influencers and media through CPS campaigns and paid collaborations.If you are interested in these campaigns, could you please share your rates with me at your earliest convenience?Rest assured all the information will be held strictly confidential. Please let me know if you have any questions or concerns.I am looking forward to your response.All the Best,",
-    "Dear Valued Content Creator,\n\nI hope this message finds you well. My name is Wesley, and I am reaching out to you on behalf of Grammarly, the world's leading writing assistance tool.\n\nWe have been avidly following your YouTube channel and have been thoroughly impressed with the quality of your work. Your ability to engage your audience through informative and entertaining videos is truly remarkable.\n\nAt Grammarly, we believe that our product can help your viewers improve their writing skills and take their content creation to the next level. We would love to offer you a partnership opportunity to showcase our product to your audience.\n\nAs a partner, we would provide you with access to our premium features and support you in creating content that showcases the benefits of our product. In return, we ask that you feature our product in your videos and promote it to your audience.\n\nOur goal is to work with you to create engaging and informative content that will benefit your viewers while promoting our brand. With your expertise and our product, we are confident that we can create something truly special.\n\nIf you are interested in this partnership opportunity, please let us know, and we will provide you with more information on our offer. We look forward to hearing from you soon.\n\nThank you for considering our proposal.",
-    "Hello,Max Grabel\n\nNice to contact you!\n\nThis is the Asjmreye，mainly furniture and home textiles\n\nWe wouil like to invite you to make an unboxing video/product recomment videoon TikTok for our products.\n\nWe can offer free samples and 15% commissiom\n\nLooking forward to reply soon!\n\nBest Regards,\n\nAsjmreye"
-]
 
-for email in test_emails:
-    print("Original Email:\n", email)
-    print("\nGenerated Response:\n", process_email(email))
-    print("\n------------------------------------\n")
+
+# Main script logic (for testing purposes)
+
+if __name__ == "__main__":
+
+    test_emails = [
+        "Hello there!\n\nGreetings of the day!\n\nThis is Peri from TEMU! I've been following your profile for a while now, and I am really impressed by your exclusively engaging content and your incredible ability to create value for your audience! We'll be honored to sponsor your channel and be happy to ship our products that I am sure your audience will enjoy! Here is our [website](https://www.temu.com/)!\n\nIs there any chance we can work together to create something exceptional? If you are interested in pursuing a partnership with us, please don't hesitate to share your **cooperation price** as follows. Looking forward to hearing from you!\n\nBest Regards,\n\nPeri | Influencer Marketing Manager",
+        "Hello Max,\n\nI hope this email finds you well.My name is Carol, responsible for influencer communication at PartnerBoost. We are working with lots of famous brands such as Adidas, Flannels, Farfetch and NET-A-PORTER. Thus I am reaching out to see if you are interested in joining us to promote their latest deals. Here are the deliverables, please check below:Deliverables: 1. Sponsored Community Post (please check the [example](https://www.youtube.com/post/UgkxuxaVZAB_nEuS3UdfM3zNM1j_GvTF_3t0) we did before)2. Adding affiliate links into your description boxesPromo info: To be ConfirmedPayment: flat fee within 10 business days after posting/adding links + commission (if any sales generated)Here is a quick introduction of PartnerBoost: as an all-in-one affiliate & influencer marketing platform, I help extend my clients’ businesses by collaborating with influencers and media through CPS campaigns and paid collaborations.If you are interested in these campaigns, could you please share your rates with me at your earliest convenience?Rest assured all the information will be held strictly confidential. Please let me know if you have any questions or concerns.I am looking forward to your response.All the Best,",
+        "Dear Valued Content Creator,\n\nI hope this message finds you well. My name is Wesley, and I am reaching out to you on behalf of Grammarly, the world's leading writing assistance tool.\n\nWe have been avidly following your YouTube channel and have been thoroughly impressed with the quality of your work. Your ability to engage your audience through informative and entertaining videos is truly remarkable.\n\nAt Grammarly, we believe that our product can help your viewers improve their writing skills and take their content creation to the next level. We would love to offer you a partnership opportunity to showcase our product to your audience.\n\nAs a partner, we would provide you with access to our premium features and support you in creating content that showcases the benefits of our product. In return, we ask that you feature our product in your videos and promote it to your audience.\n\nOur goal is to work with you to create engaging and informative content that will benefit your viewers while promoting our brand. With your expertise and our product, we are confident that we can create something truly special.\n\nIf you are interested in this partnership opportunity, please let us know, and we will provide you with more information on our offer. We look forward to hearing from you soon.\n\nThank you for considering our proposal.",
+        "Hello,Max Grabel\n\nNice to contact you!\n\nThis is the Asjmreye，mainly furniture and home textiles\n\nWe wouil like to invite you to make an unboxing video/product recomment videoon TikTok for our products.\n\nWe can offer free samples and 15% commissiom\n\nLooking forward to reply soon!\n\nBest Regards,\n\nAsjmreye"
+    ]
+    for email in test_emails:
+        print("Original Email:\n", email)
+        print("\nGenerated Response:\n", process_email(email))
+        print("\n------------------------------------\n")
+
+
+
