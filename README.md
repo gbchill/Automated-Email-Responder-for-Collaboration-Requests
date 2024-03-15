@@ -27,22 +27,29 @@ To set up the script on your local machine:
 1. Clone this repository.
 2. Install the required Python libraries:
 
+    Windows:
     ```bash
     pip install spacy textblob google-api-python-client google-auth-httplib2 google-auth-oauthlib
     ```
-    or Mac
-
+    Mac:
    ```bash
     pip3 install spacy textblob google-api-python-client google-auth-httplib2 google-auth-oauthlib
     ```
 
 4. Download the spaCy English core model:
-
+   
+    Windows:
     ```bash
     python -m spacy download en_core_web_sm
     ```
+    Mac:
+   ```bash
+    python3 -m spacy download en_core_web_sm
+    ```
 
-5. (Optional) Set up Gmail API by following Google's Gmail API Python Quickstart guide.
+    
+
+6. (Optional) Set up Gmail API by following Google's Gmail API Python Quickstart guide.
 
 ## Usage
 
