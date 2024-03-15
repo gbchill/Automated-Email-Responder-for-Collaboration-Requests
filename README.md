@@ -30,14 +30,19 @@ To set up the script on your local machine:
     ```bash
     pip install spacy textblob google-api-python-client google-auth-httplib2 google-auth-oauthlib
     ```
+    or Mac
 
-3. Download the spaCy English core model:
+   ```bash
+    pip3 install spacy textblob google-api-python-client google-auth-httplib2 google-auth-oauthlib
+    ```
+
+4. Download the spaCy English core model:
 
     ```bash
     python -m spacy download en_core_web_sm
     ```
 
-4. (Optional) Set up Gmail API by following Google's Gmail API Python Quickstart guide.
+5. (Optional) Set up Gmail API by following Google's Gmail API Python Quickstart guide.
 
 ## Usage
 
