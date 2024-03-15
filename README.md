@@ -51,6 +51,36 @@ To set up the script on your local machine:
 
 6. (Optional) Set up Gmail API by following Google's Gmail API Python Quickstart guide.
 
+## Run
+
+When running the Test and Automation, there is a difference in functionality:
+
+- **TestEmailResponder**: This command is used for testing the functionality of the script. It does not involve sending actual emails but simulates the processing of emails and generates responses based on predefined scenarios.
+
+    - **Windows**: Execute the following command:
+        ```bash
+        python TestEmailResponder
+        ```
+
+    - **Mac**: Execute the following command:
+        ```bash
+        python3 TestEmailResponder
+        ```
+
+- **Automation**: This command is used to run the script in automation mode, where it actively monitors incoming emails and sends out responses automatically.
+
+    - **Windows**: Execute the following command:
+        ```bash
+        python EmailAutomation
+        ```
+
+    - **Mac**: Execute the following command:
+        ```bash
+        python3 EmailAutomation
+        ```
+
+Ensure to use the appropriate command based on your operating system and the desired functionality.
+
 ## Usage
 
 1. Update the `max_profile` dictionary in the script with your information, preferences, and rates.
