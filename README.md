@@ -84,22 +84,23 @@ Ensure to use the appropriate command based on your operating system and the des
 ## Usage
 
 1. Update the `max_profile` dictionary in the script with your information, preferences, and rates.
-2. Run the script. It can monitor incoming emails in real-time or process a predefined set of emails for demonstration purposes.
+2. Run the script.
+   - For manual email sending:
+     - Use Gmail labels: Ensure to use Labels within Gmail and drag the incoming collaboration request emails into the specified label to trigger the script to process and send responses.
+   - For automated email processing:
+     - Update Gmail labels: Modify the label with the provided "Automate" script to enable automated processing of incoming emails.
 3. Customize the email response templates and conditions within the script as needed to accommodate different types of collaboration queries and offers.
 
-## Enhancements in the Latest Version
-
-- **Enhanced Email Confirmation**: Post email dispatch, the script now prints a confirmation including recipient, subject, and body for user validation.
-- **Improved NLP Processing**: Updated logic for more accurate context and sentiment analysis.
-- **Automated Email Integration**: Extended documentation for easier setup and integration with Gmail API for automated processing.
+Ensure to follow the appropriate steps for manual or automated email processing based on your workflow requirements.
 
 ## Development Considerations
 
-The script focuses on:
-- **Seamless Automation**: Integration with email APIs for automated email processing.
-- **Detailed Personalization**: Responses that accurately reflect user-specific details and professional guidelines.
-- **Enhanced Accuracy**: Improved NLP for better understanding and categorization of email content.
-- **Operational Efficiency**: Reducing response time while maintaining high communication standards.
+This project is currently in the prototype stage and has been developed up to the implementation of the Python script and integration with the Gmail API. As of now, it is not a fully automated solution running 24/7. Users must manually run the script each time they want to process incoming emails and drag the emails into the specified label within Gmail to trigger the script.
+
+Further development is needed to achieve seamless automation, including continuous monitoring of emails and automatic response generation without user intervention. Future enhancements may involve implementing scheduling mechanisms, improving email categorization accuracy, and enhancing integration with email platforms for smoother operation.
+
+Please be aware that this prototype is intended for demonstration and testing purposes, and additional refinement is required for practical deployment in real-world scenarios.
+
 
 ## Challenges and Resolutions
 
@@ -107,6 +108,3 @@ The script focuses on:
 - **Response Applicability**: Expanded user profile settings and response conditions for greater relevancy.
 - **Integration Simplicity**: Provided clearer setup instructions and streamlined Gmail API integration process.
 
-## Contributing
-
-We welcome contributions! If you'd like to improve or suggest features, fork the repository and submit a pull request with your changes. Please ensure your contributions are documented and adhere to project standards.
